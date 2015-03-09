@@ -15,20 +15,44 @@ from tweepy import Stream
 class StdOutListener(StreamListener):
     def on_status(self, status):
         print("got status")
-        #parse status
-        #based on parsing do stuff
-
-        return True
+        self.parse(status.text)
     def on_error(self, status_code):
         print("got error with code"+str(status_code))
-
+        return
     def on_timeout(self):
         print("timeout....")
         return True
 
-    #def parse
-
-
+    def parse(self, statusText):
+        red = 0
+        blue = 0
+        green = 0
+        quit = 0
+        red = statusText.count("red")
+        blue = statusText.count("blue")
+        green = statusText.count("green")
+        quit = statusText.count("quit")
+        if red >= 1 and green == 0 and blue == 0:
+            GPIO.output(brewBot.pin_blue, GPIO.LOW)
+            GPIO.output(brewBot.pin_green, GPIO.LOW)
+            GPIO.output(brewBot.pin_red, GPIO.HIGH)
+            return True
+        elif blue >= 1 and green == 0 and red == 0:
+            GPIO.output(brewBot.pin_blue, GPIO.HIGH)
+            GPIO.output(brewBot.pin_green, GPIO.LOW)
+            GPIO.output(brewBot.pin_red, GPIO.LOW)
+            return True
+        elif green >= 1 and red ==0 and blue == 0:
+            GPIO.output(brewBot.pin_blue, GPIO.LOW)
+            GPIO.output(brewBot.pin_green, GPIO.HIGH)
+            GPIO.output(brewBot.pin_red, GPIO.LOW)
+            return True
+        elif quit >= 1:
+            self.running = False
+            return False
+        else:
+            print("too many choices")
+            return True
 #end stream listener
 #now define the initialization
 # set up the gpio
@@ -41,8 +65,8 @@ class brewBot:
 
     pin_ready = 6
     pin_red = 25
-    pin_green = 26
-    pin_blue = 24
+    pin_green = 24
+    pin_blue = 26
 
     def __init__(self):
 
@@ -66,13 +90,11 @@ class brewBot:
         
         folList = self.api.followers()
         usrString = str(folList[0].id)
-
-        #listener = StdOutListener()
-        #stream = Stream(auth, listener)
-        #stream.filter(follow=[usrString], track=['#brew'])
         print("ledTest")
         GPIO.output(self.pin_ready, GPIO.HIGH)
-
+        listener = StdOutListener()
+        stream = Stream(auth, listener)
+        stream.filter(follow=[usrString], track=['#brew'])
         #end constructor
     #other fucntion defs at this level
 
