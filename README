@@ -1,0 +1,12 @@
+Documentation for BearBrewBot
+
+Python program designed to listen to twitterfeed @bearbrewbot
+propper commands will cause the attached computer to attempt to run 
+a coffee pot and brew the tweeted ammount of coffee.
+once brewed, this should tweet back saying that the coffee is done.
+
+run with:
+    
+    sudo python brewbot.py
+
+without root acess, this code can not use the GPIO pins
