@@ -184,19 +184,24 @@ class Arm:
         time.sleep(2)
         self.out.write("#2 P1580 S250 \r")
         time.sleep(2)
-        self.out.write("#4 P500 S250 \r")
+        self.out.write("#4 P600 S250 \r")
         time.sleep(4)
+        self.out.write("#2 P1350 S250 \r")
+        time.sleep(3)
+        self.out.write("#1 P1700 S250 \r")
+        time.sleep(3)
         self.center()
 
 
+def test(self):
 
-#arm testing entry point
-#a = Arm()
-#time.sleep(5)
-#a.open()
-#time.sleep(3)
-#a.empty_basket()
-#time.sleep(3)
-#a.load_basket()
-#time.sleep(3)
-#a.close()
+    #arm testing entry point
+    a = Arm()
+    time.sleep(5)
+    a.open()
+    time.sleep(3)
+    a.empty_basket()
+    time.sleep(3)
+    a.load_basket()
+    time.sleep(3)
+    a.close()
