@@ -2,6 +2,7 @@
 # A tweeting coffee brewing solution
 # by Edward Pryor
 # using Tweepy twitter API wrapper for python.
+
 import time
 import os
 import RPi.GPIO as GPIO
@@ -9,31 +10,57 @@ import tweepy
 from tweepy.streaming import StreamListener
 from tweepy import Stream
 import arm
+
 #this class controls handling the incoming text
 # on_status will parse the tweet
 #call the apropriate functions if deemed good
 
 class StdOutListener(StreamListener):
+    # on_status
+    # respond to recieving status
+    # recieve message, pass it to parse
+
     def on_status(self, status):
         print(status.text)
         print(str(mainBot.readytoBrew))
         self.parse(status.text)
+
+    # on_error
+    # something broke
+    # most common is the 420 error, stems from bad tokens
+    # this seems to happen from rapid accesses to the api, 
+    # also breaks around bad shut down of program
+
     def on_error(self, status_code):
         GPIO.output(brewBot.pin_ready, GPIO.LOW)
         GPIO.output(brewBot.pin_red, GPIO.HIGH)
         print("got error with code"+str(status_code))
         return
+    # on_timeout
     def on_timeout(self):
         print("timeout....")
         return True
-
+    
+    # makeCoffee
+    # this method controls the making of coffee
+    # called when parse returns that the tweet contained the start sequence
+    # first, make the arm run through its sequence
+    # then run the brew.
+    
     def makeCoffee(self):
         print "chicken"
         if(mainBot.readytoBrew):
             brewBot.readytoBrew = False
             
             #call to arms haha
-         
+            mainBot.a.open()
+            time.sleep(4)
+            mainBot.a.empty_basket()
+            time.sleep(4)
+            mainBot.a.load_basket()
+            time.sleep(4)
+            mainBot.a.close()
+            time.sleep(4)
             GPIO.output(brewBot.pin_blue, GPIO.LOW)
             GPIO.output(brewBot.pin_green, GPIO.LOW)
             GPIO.output(brewBot.pin_red, GPIO.LOW)
@@ -49,6 +76,12 @@ class StdOutListener(StreamListener):
         else:
             mainBot.isBusy()
         return
+# parse reads the tweet
+# this is a simple parse
+# counts the occurence of key words in the tweet
+# start = start brewing
+# red, green, blue = change status collor light
+# quit = shut down the pi. sloppy
 
     def parse(self, statusText):
         red = 0
@@ -92,6 +125,11 @@ class StdOutListener(StreamListener):
 # read in the four tokens
 # authenticate
 # once all that done, turn on led #6
+
+# brew bot class
+# primary action is to construct the stream listener
+# authenticate the application
+# respond to the tweet, using ticket file to make each tweet unique
 
 class brewBot:
     tokenBuffer  = []
@@ -145,7 +183,7 @@ class brewBot:
         self.r = self.r+1;
         f = open("/home/pi/project/ticket", w)
         f.write(self.r)
-
+        self.readytoBrew = True
     def isBusy(self):
         self.api.update_status(status="Busy...")
 

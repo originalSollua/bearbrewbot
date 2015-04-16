@@ -106,6 +106,8 @@ class Arm:
         self.center()
         time.sleep(2)
         #initial grab positioning. problematic
+        self.out.write("#4 P600 S250 \r")
+        time.sleep(2)
         self.out.write("#0 P1300 S250 \r")
         time.sleep(3)
         self.out.write("#3 P600 S250 \r")
@@ -151,6 +153,8 @@ class Arm:
     # apply fresh basket to the coffee pot
     def load_basket(self):
         self.center()
+        time.sleep(2)
+        self.out.write("#4 P600 S250 \r")
         time.sleep(2)
         self.out.write("#0 P2500 S250 \r")
         time.sleep(4)
