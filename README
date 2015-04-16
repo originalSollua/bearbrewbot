@@ -10,3 +10,7 @@ run with:
     sudo python brewbot.py
 
 without root acess, this code can not use the GPIO pins
+ticket is intended to hold the number of communications that
+the bot has sent. 
+incriment this number every time it tweets, then write it back to the file.
+

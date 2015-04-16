@@ -3,6 +3,7 @@
 # by Edward Pryor
 # using Tweepy twitter API wrapper for python.
 import time
+import os
 import RPi.GPIO as GPIO
 import tweepy
 from tweepy.streaming import StreamListener
@@ -14,24 +15,52 @@ from tweepy import Stream
 
 class StdOutListener(StreamListener):
     def on_status(self, status):
-        print("got status")
+        print(status.text)
+        print(str(mainBot.readytoBrew))
         self.parse(status.text)
     def on_error(self, status_code):
+        GPIO.output(brewBot.pin_ready, GPIO.LOW)
+        GPIO.output(brewBot.pin_red, GPIO.HIGH)
         print("got error with code"+str(status_code))
         return
     def on_timeout(self):
         print("timeout....")
         return True
 
+    def makeCoffee(self):
+        print "chicken"
+        if(mainBot.readytoBrew):
+            brewBot.readytoBrew = False
+            GPIO.output(brewBot.pin_blue, GPIO.LOW)
+            GPIO.output(brewBot.pin_green, GPIO.LOW)
+            GPIO.output(brewBot.pin_red, GPIO.LOW)
+            GPIO.output(brewBot.pin_blue, GPIO.HIGH)
+            GPIO.output(brewBot.pin_coffee, GPIO.LOW)
+            #coffee is brewing, wait till done
+            time.sleep(800)
+            #leaves the pot running for 6 minutes
+            GPIO.output(brewBot.pin_coffee, GPIO.HIGH)
+            GPIO.output(brewBot.pin_blue, GPIO.LOW)
+            GPIO.output(brewBot.pin_red, GPIO.HIGH)
+            mainBot.brewDone()
+        else:
+            mainBot.isBusy()
+        return
+
     def parse(self, statusText):
         red = 0
         blue = 0
         green = 0
         quit = 0
+        brew = 0
         red = statusText.count("red")
         blue = statusText.count("blue")
         green = statusText.count("green")
         quit = statusText.count("quit")
+        brew = statusText.count("start")
+        if brew >= 1:
+            self.makeCoffee()
+            return True
         if red >= 1 and green == 0 and blue == 0:
             GPIO.output(brewBot.pin_blue, GPIO.LOW)
             GPIO.output(brewBot.pin_green, GPIO.LOW)
@@ -49,6 +78,7 @@ class StdOutListener(StreamListener):
             return True
         elif quit >= 1:
             self.running = False
+            os.system("sudo shutdown -h now")
             return False
         else:
             print("too many choices")
@@ -62,15 +92,15 @@ class StdOutListener(StreamListener):
 
 class brewBot:
     tokenBuffer  = []
-
+    readytoBrew = True
     pin_ready = 6
     pin_red = 25
     pin_green = 24
     pin_blue = 26
-
+    pin_coffee = 23
     def __init__(self):
 
-        with open("token") as f:
+        with open("/home/pi/project/token") as f:
             for line in f:
                 self.tokenBuffer.append(line.strip())
         print('Tokens got')
@@ -80,26 +110,35 @@ class brewBot:
         GPIO.setup(self.pin_red, GPIO.OUT, initial=GPIO.LOW);
         GPIO.setup(self.pin_blue, GPIO.OUT, initial=GPIO.LOW);
         GPIO.setup(self.pin_green, GPIO.OUT, initial=GPIO.LOW);
+        GPIO.setup(self.pin_blue, GPIO.OUT, initial=GPIO.LOW);
+        GPIO.setup(self.pin_coffee, GPIO.OUT, initial=GPIO.HIGH);
         print("Pins Set")
-        auth = tweepy.OAuthHandler(self.tokenBuffer[0], self.tokenBuffer[1])
-        auth.secure = True
-        auth.set_access_token(self.tokenBuffer[2], self.tokenBuffer[3])
-        self.api = tweepy.API(auth)
+        self.auth = tweepy.OAuthHandler(self.tokenBuffer[0], self.tokenBuffer[1])
+        self.auth.secure = True
+        self.auth.set_access_token(self.tokenBuffer[2], self.tokenBuffer[3])
+        self.api = tweepy.API(self.auth)
         print(self.api.me().name)
         #set up stream
         
         folList = self.api.followers()
-        usrString = str(folList[0].id)
+        self.usrString = str(folList[0].id)
         print("ledTest")
         GPIO.output(self.pin_ready, GPIO.HIGH)
+    def streamStart(self):
         listener = StdOutListener()
-        stream = Stream(auth, listener)
-        stream.filter(follow=[usrString], track=['#brew'])
+        stream = Stream(self.auth, listener)
+        print "stream built"
+        stream.filter(follow=[self.usrString], track=['potsdamCoffee'])
         #end constructor
     #other fucntion defs at this level
+    def brewDone(self):
+        self.api.update_status(status="Coffee's done!")
+    def isBusy(self):
+        self.api.update_status(status="Busy...")
 
 #code entry point
 mainBot = brewBot()
+mainBot.streamStart()
 time.sleep(20)
 print("Shutting down")
 
@@ -107,3 +146,4 @@ GPIO.cleanup(6)
 GPIO.cleanup(24)
 GPIO.cleanup(25)
 GPIO.cleanup(26)
+GPIO.cleanup(23)
