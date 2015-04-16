@@ -154,12 +154,12 @@ class Arm:
 
 
 #arm testing entry point
-a = Arm()
-time.sleep(5)
-a.open()
-time.sleep(3)
-a.empty_basket()
-time.sleep(3)
-a.load_basket()
-time.sleep(3)
-a.close()
+#a = Arm()
+#time.sleep(5)
+#a.open()
+#time.sleep(3)
+#a.empty_basket()
+#time.sleep(3)
+#a.load_basket()
+#time.sleep(3)
+#a.close()

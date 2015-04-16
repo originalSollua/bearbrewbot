@@ -8,7 +8,7 @@ import RPi.GPIO as GPIO
 import tweepy
 from tweepy.streaming import StreamListener
 from tweepy import Stream
-
+import arm
 #this class controls handling the incoming text
 # on_status will parse the tweet
 #call the apropriate functions if deemed good
@@ -31,6 +31,9 @@ class StdOutListener(StreamListener):
         print "chicken"
         if(mainBot.readytoBrew):
             brewBot.readytoBrew = False
+            
+            #call to arms haha
+         
             GPIO.output(brewBot.pin_blue, GPIO.LOW)
             GPIO.output(brewBot.pin_green, GPIO.LOW)
             GPIO.output(brewBot.pin_red, GPIO.LOW)
@@ -100,6 +103,7 @@ class brewBot:
     pin_coffee = 23
     def __init__(self):
 
+        self.a = arm.Arm()
         with open("/home/pi/project/token") as f:
             for line in f:
                 self.tokenBuffer.append(line.strip())
@@ -124,15 +128,24 @@ class brewBot:
         self.usrString = str(folList[0].id)
         print("ledTest")
         GPIO.output(self.pin_ready, GPIO.HIGH)
+
     def streamStart(self):
         listener = StdOutListener()
         stream = Stream(self.auth, listener)
         print "stream built"
         stream.filter(follow=[self.usrString], track=['potsdamCoffee'])
         #end constructor
+
     #other fucntion defs at this level
     def brewDone(self):
-        self.api.update_status(status="Coffee's done!")
+        f = open("/home/pi/project/ticket", r)
+        self.r = int(f.readline())
+        f.close()
+        self.api.update_status(status="Coffee's done!"+str(self.r))
+        self.r = self.r+1;
+        f = open("/home/pi/project/ticket", w)
+        f.write(self.r)
+
     def isBusy(self):
         self.api.update_status(status="Busy...")
 
