@@ -50,6 +50,8 @@ class StdOutListener(StreamListener):
     def makeCoffee(self):
         if(mainBot.readytoBrew):
             brewBot.readytoBrew = False
+            GPIO.output(brewBot.pin_green, GPIO.LOW)
+            GPIO.output(brewBot.pin_blue, GPIO.HIGH)
             
             #call to arms haha
             mainBot.a.open()
@@ -62,8 +64,8 @@ class StdOutListener(StreamListener):
             time.sleep(4)
             GPIO.output(brewBot.pin_blue, GPIO.LOW)
             GPIO.output(brewBot.pin_green, GPIO.LOW)
-            GPIO.output(brewBot.pin_red, GPIO.LOW)
-            GPIO.output(brewBot.pin_blue, GPIO.HIGH)
+            GPIO.output(brewBot.pin_blue, GPIO.LOW)
+            GPIO.output(brewBot.pin_red, GPIO.HIGH)
             GPIO.output(brewBot.pin_coffee, GPIO.LOW)
             #coffee is brewing, wait till done
             print "brew start"
@@ -71,8 +73,7 @@ class StdOutListener(StreamListener):
             print "brew done"
             #leaves the pot running for 6 minutes
             GPIO.output(brewBot.pin_coffee, GPIO.HIGH)
-            GPIO.output(brewBot.pin_blue, GPIO.LOW)
-            GPIO.output(brewBot.pin_red, GPIO.HIGH)
+            GPIO.output(brewBot.pin_red, GPIO.LOW)
             mainBot.brewDone()
         else:
             mainBot.isBusy()
@@ -167,6 +168,7 @@ class brewBot:
         self.usrString = str(folList[0].id)
         print("ledTest")
         GPIO.output(self.pin_ready, GPIO.HIGH)
+        GPIO.output(brewBot.pin_green, GPIO.HIGH)
 
     def streamStart(self):
         listener = StdOutListener()
@@ -185,9 +187,7 @@ class brewBot:
         f = open("/home/pi/project/ticket", 'w')
         f.write(str(self.r))
         self.readytoBrew = True
-
-        GPIO.output(self.pin_red, GPIO.LOW)
-        GPIO.output(self.pin_red, GPIO.HIGH)
+        GPIO.output(self.pin_green, GPIO.HIGH)
     def isBusy(self):
         self.api.update_status(status="Busy...")
 
