@@ -14,3 +14,11 @@ ticket is intended to hold the number of communications that
 the bot has sent. 
 incriment this number every time it tweets, then write it back to the file.
 
+
+UPDATE:
+After finishing the portion of this porject that involves the Twitter API, i have decided to no longer use it
+to that end, i will be rewriting the code so that the bear brew bot spins up a single user server
+it will serve one pot of coffee, and require resetting.
+i will also write a client application that will connect to the coffee
+pot, and remain connected while coffee is brewing. 
+the bot will send back status updates that the client can report to the user.
