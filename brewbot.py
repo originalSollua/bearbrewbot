@@ -158,11 +158,13 @@ mainBot = brewBot()
 running = True
 while(running):
     self.client = mainBot.brewSocket.accept()
-    self.client.send("Establiched Coffee Connection")
+    self.client.send("connected")
     # next up, expect a request for something
     # the argument for recieve is the buffer size
     s = mainBot.brewSocket.recv(1024)
     running = mainBot.parse(s)
+    self.client.send("finished")
+    self.client.close()
 print("coffee bot shutting down")
 GPIO.cleanup(6)
 GPIO.cleanup(24)
